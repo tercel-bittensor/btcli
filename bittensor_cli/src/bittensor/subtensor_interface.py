@@ -1189,7 +1189,7 @@ class SubtensorInterface:
             return ProposalVoteData(vote_data)
 
     async def get_delegate_identities(
-        self, block_hash: Optional[str] = None
+        self, block_hash: Optional[str] = None, skip_github: bool = False
     ) -> dict[str, DelegatesDetails]:
         """
         Fetches delegates identities from the chain and GitHub. Preference is given to chain data, and missing info
@@ -1197,60 +1197,70 @@ class SubtensorInterface:
         from GitHub, but chain data is still limited in that regard.
 
         :param block_hash: the hash of the blockchain block for the query
+        :param skip_github: if True, skip fetching delegate details from GitHub
 
         :return: {ss58: DelegatesDetails, ...}
 
         """
-        timeout = aiohttp.ClientTimeout(10.0)
-        async with aiohttp.ClientSession(timeout=timeout) as session:
-            identities_info, response = await asyncio.gather(
-                self.substrate.query_map(
-                    module="Registry",
-                    storage_function="IdentityOf",
-                    block_hash=block_hash,
-                ),
-                session.get(Constants.delegates_detail_url),
+        # First, get chain data which is essential
+        identities_info = await self.substrate.query_map(
+            module="Registry",
+            storage_function="IdentityOf",
+            block_hash=block_hash,
+        )
+
+        all_delegates_details = {}
+        async for ss58_address, identity in identities_info:
+            all_delegates_details.update(
+                {
+                    decode_account_id(
+                        ss58_address[0]
+                    ): DelegatesDetails.from_chain_data(
+                        decode_hex_identity_dict(identity.value["info"])
+                    )
+                }
             )
 
-            all_delegates_details = {}
-            async for ss58_address, identity in identities_info:
-                all_delegates_details.update(
-                    {
-                        decode_account_id(
-                            ss58_address[0]
-                        ): DelegatesDetails.from_chain_data(
-                            decode_hex_identity_dict(identity.value["info"])
-                        )
-                    }
-                )
+        # Skip GitHub fetch if requested
+        if skip_github:
+            return all_delegates_details
 
-            if response.ok:
-                all_delegates: dict[str, Any] = await response.json(content_type=None)
+        # Try to fetch GitHub data with a shorter timeout and make it optional
+        try:
+            timeout = aiohttp.ClientTimeout(5.0)  # Reduced timeout from 10.0 to 5.0
+            async with aiohttp.ClientSession(timeout=timeout) as session:
+                async with session.get(Constants.delegates_detail_url) as response:
+                    if response.ok:
+                        all_delegates: dict[str, Any] = await response.json(content_type=None)
 
-                for delegate_hotkey, delegate_details in all_delegates.items():
-                    delegate_info = all_delegates_details.setdefault(
-                        delegate_hotkey,
-                        DelegatesDetails(
-                            display=delegate_details.get("name", ""),
-                            web=delegate_details.get("url", ""),
-                            additional=delegate_details.get("description", ""),
-                            pgp_fingerprint=delegate_details.get("fingerprint", ""),
-                        ),
-                    )
-                    delegate_info.display = (
-                        delegate_info.display or delegate_details.get("name", "")
-                    )
-                    delegate_info.web = delegate_info.web or delegate_details.get(
-                        "url", ""
-                    )
-                    delegate_info.additional = (
-                        delegate_info.additional
-                        or delegate_details.get("description", "")
-                    )
-                    delegate_info.pgp_fingerprint = (
-                        delegate_info.pgp_fingerprint
-                        or delegate_details.get("fingerprint", "")
-                    )
+                        for delegate_hotkey, delegate_details in all_delegates.items():
+                            delegate_info = all_delegates_details.setdefault(
+                                delegate_hotkey,
+                                DelegatesDetails(
+                                    display=delegate_details.get("name", ""),
+                                    web=delegate_details.get("url", ""),
+                                    additional=delegate_details.get("description", ""),
+                                    pgp_fingerprint=delegate_details.get("fingerprint", ""),
+                                ),
+                            )
+                            delegate_info.display = (
+                                delegate_info.display or delegate_details.get("name", "")
+                            )
+                            delegate_info.web = delegate_info.web or delegate_details.get(
+                                "url", ""
+                            )
+                            delegate_info.additional = (
+                                delegate_info.additional
+                                or delegate_details.get("description", "")
+                            )
+                            delegate_info.pgp_fingerprint = (
+                                delegate_info.pgp_fingerprint
+                                or delegate_details.get("fingerprint", "")
+                            )
+        except (asyncio.TimeoutError, aiohttp.ClientError, Exception) as e:
+            # Log the error but continue with chain data only
+            console.log(f"[yellow]Warning[/yellow]: Failed to fetch delegate details from GitHub: {e}")
+            console.log("[yellow]Continuing with chain data only...[/yellow]")
 
         return all_delegates_details
 

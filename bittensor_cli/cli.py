@@ -3133,6 +3133,12 @@ class CLIManager:
         verbose: bool = Options.verbose,
         no_prompt: bool = Options.prompt,
         json_output: bool = Options.json_output,
+        skip_github: bool = typer.Option(
+            False,
+            "--skip-github",
+            "--no-github",
+            help="Skip fetching delegate details from GitHub to avoid timeout issues",
+        ),
         # TODO add: all-wallets, reuse_last, html_output
     ):
         """
@@ -3186,6 +3192,7 @@ class CLIManager:
                 verbose,
                 no_prompt,
                 json_output,
+                skip_github,
             )
         )
 

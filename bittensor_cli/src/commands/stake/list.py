@@ -34,6 +34,7 @@ async def stake_list(
     verbose: bool = False,
     prompt: bool = False,
     json_output: bool = False,
+    skip_github: bool = False,
 ):
     coldkey_address = coldkey_ss58 if coldkey_ss58 else wallet.coldkeypub.ss58_address
 
@@ -46,7 +47,7 @@ async def stake_list(
             subtensor.get_stake_for_coldkey(
                 coldkey_ss58=coldkey_address, block_hash=block_hash_
             ),
-            subtensor.get_delegate_identities(block_hash=block_hash_),
+            subtensor.get_delegate_identities(block_hash=block_hash_, skip_github=skip_github),
             subtensor.all_subnets(block_hash=block_hash_),
         )
         # sub_stakes = substakes[coldkey_address]
