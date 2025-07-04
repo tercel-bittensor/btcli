@@ -1168,6 +1168,7 @@ def prompt_for_subnet_identity(
     discord: Optional[str],
     description: Optional[str],
     additional: Optional[str],
+    logo_url: Optional[str],
 ):
     """
     Prompts the user for required subnet identity fields with validation.
@@ -1233,6 +1234,13 @@ def prompt_for_subnet_identity(
             additional,
             lambda x: x and len(x.encode("utf-8")) > 1024,
             "[red]Error:[/red] Additional information must be <= 1024 bytes.",
+        ),
+        (
+            "logo_url",
+            "[blue]Logo URL [dim](optional)[/blue]",
+            logo_url,
+            lambda x: x and len(x.encode("utf-8")) > 1024,
+            "[red]Error:[/red] Logo URL must be <= 1024 bytes.",
         ),
     ]
 

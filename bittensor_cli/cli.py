@@ -5035,6 +5035,9 @@ class CLIManager:
         additional_info: Optional[str] = typer.Option(
             None, "--additional-info", help="Additional information"
         ),
+        logo_url: Optional[str] = typer.Option(
+            None, "--logo-url", help="Logo URL for the subnet"
+        ),
         json_output: bool = Options.json_output,
         prompt: bool = Options.prompt,
         quiet: bool = Options.quiet,
@@ -5075,6 +5078,7 @@ class CLIManager:
             discord=discord,
             description=description,
             additional=additional_info,
+            logo_url=logo_url,
         )
         self._run_command(
             subnets.create(
@@ -5200,6 +5204,9 @@ class CLIManager:
         additional_info: Optional[str] = typer.Option(
             None, "--additional-info", help="Additional information"
         ),
+        logo_url: Optional[str] = typer.Option(
+            None, "--logo-url", help="Logo URL for the subnet"
+        ),
         json_output: bool = Options.json_output,
         prompt: bool = Options.prompt,
         quiet: bool = Options.quiet,
@@ -5249,6 +5256,7 @@ class CLIManager:
             discord=discord,
             description=description,
             additional=additional_info,
+            logo_url=logo_url,
         )
 
         success = self._run_command(

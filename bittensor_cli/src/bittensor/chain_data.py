@@ -631,6 +631,7 @@ class SubnetIdentity(InfoBase):
     discord: str
     description: str
     additional: str
+    logo_url: str
 
     @classmethod
     def _fix_decoded(cls, decoded: dict) -> "SubnetIdentity":
@@ -642,6 +643,7 @@ class SubnetIdentity(InfoBase):
             discord=bytes(decoded["discord"]).decode(),
             description=bytes(decoded["description"]).decode(),
             additional=bytes(decoded["additional"]).decode(),
+            logo_url=bytes(decoded["logo_url"]).decode(),
         )
 
 

@@ -143,6 +143,9 @@ async def register_subnetwork_extrinsic(
             "additional": subnet_identity["additional"].encode()
             if subnet_identity.get("additional")
             else b"",
+            "logo_url": subnet_identity["logo_url"].encode()
+            if subnet_identity.get("logo_url")
+            else b"",
         }
         call_params["identity"] = identity_data
         call_function = "register_network_with_identity"
@@ -2208,6 +2211,7 @@ async def set_identity(
         "discord": subnet_identity.get("discord", ""),
         "description": subnet_identity.get("description", ""),
         "additional": subnet_identity.get("additional", ""),
+        "logo_url": subnet_identity.get("logo_url", ""),
     }
 
     if not unlock_key(wallet).success:
@@ -2253,6 +2257,7 @@ async def set_identity(
             "discord",
             "description",
             "additional",
+            "logo_url",
         ]:
             value = getattr(identity, key, None)
             table.add_row(key, str(value) if value else "~")
@@ -2302,6 +2307,7 @@ async def get_identity(
             "discord",
             "description",
             "additional",
+            "logo_url",
         ]:
             value = getattr(identity, key, None)
             table.add_row(key, str(value) if value else "~")
