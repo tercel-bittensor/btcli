@@ -636,14 +636,14 @@ class SubnetIdentity(InfoBase):
     @classmethod
     def _fix_decoded(cls, decoded: dict) -> "SubnetIdentity":
         return cls(
-            subnet_name=bytes(decoded["subnet_name"]).decode(),
-            github_repo=bytes(decoded["github_repo"]).decode(),
-            subnet_contact=bytes(decoded["subnet_contact"]).decode(),
-            subnet_url=bytes(decoded["subnet_url"]).decode(),
-            discord=bytes(decoded["discord"]).decode(),
-            description=bytes(decoded["description"]).decode(),
-            additional=bytes(decoded["additional"]).decode(),
-            logo_url=bytes(decoded["logo_url"]).decode(),
+            subnet_name=bytes(decoded.get("subnet_name", b"")).decode(),
+            github_repo=bytes(decoded.get("github_repo", b"")).decode(),
+            subnet_contact=bytes(decoded.get("subnet_contact", b"")).decode(),
+            subnet_url=bytes(decoded.get("subnet_url", b"")).decode(),
+            discord=bytes(decoded.get("discord", b"")).decode(),
+            description=bytes(decoded.get("description", b"")).decode(),
+            additional=bytes(decoded.get("additional", b"")).decode(),
+            logo_url=bytes(decoded.get("logo_url", b"")).decode(),
         )
 
 
